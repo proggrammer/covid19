@@ -15,13 +15,18 @@
         var sizeDataArrayByDate;
         var allPredictions;
         // let WORLD_POPULATION = 7800000000;
-        var countryWisePop = {}
+        var countryWisePopGlobal = {}
         //-1, -100 to generate from yesterday till last 100 days, days is prediction in future
         function getPopulation() {
+            //console.log("getPopulation called");
+            var countryWisePop = {};
                 return d3.csv("https://raw.githubusercontent.com/proggrammer/proggrammer.github.io/master/country_pop.csv", function(data){
                     $.each(data, function (i,k) {
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
                     });
+                    countryWisePopGlobal = countryWisePop;
+                    //console.log("...");
+                    //console.log(countryWisePopGlobal);
                 });
         }
 
@@ -86,7 +91,7 @@
                     item = rawData[value];
                     var country = item["Country/Region"];
                     var keysRawData2 = Object.keys(item);
-                    //console.log(country);
+                    ////console.log(country);
                     var vObject = [];
                     $.each(keysRawData2, function( index, date ) {
                             if(!["Province/State", "Lat", "Long", "Country/Region"].includes(date)) {
@@ -109,20 +114,35 @@
                 lastDateOfData = rawData.columns[rawData.columns.length-1];
                 provincesGlobal = Object.keys(inputData);
                 r0Data = r0Method(inputData);
-                getPopulation();
-                allPredictions = predictions(inputData, r0Data, true, 1000);
+
+
+                var countryWisePop = {};
+                return d3.csv("https://raw.githubusercontent.com/proggrammer/proggrammer.github.io/master/country_pop.csv", function(data){
+                    $.each(data, function (i,k) {
+                        countryWisePop[k["name"]] = Math.round(k["population"]*1000);
+                    });
+                    countryWisePopGlobal = countryWisePop;
+                    allPredictions = predictions(inputData, r0Data, true, 1000);
+                    // //console.log("...");
+                    // //console.log(countryWisePopGlobal);
+                });
             });
         }
         function predictions(inputDataTemp, r0DataTemp, generateValue, howManyFront)    {
-            console.log(countryWisePop);
+            console.log(countryWisePopGlobal);
             var result ={};
             $.each(provincesGlobal, function (index, country) {
                 var r0Country = r0Data[country];
-                var WORLD_POPULATION = countryWisePop[country.toLowerCase()];
-                if(country == "global")
-                console.log(WORLD_POPULATION);
-                if(typeof r0Country != 'undefined' && r0Country.length == 0) {
-                    //console.log(country);
+                var WORLD_POPULATION = countryWisePopGlobal[country.toLowerCase()];
+                if(country == "global") {
+                    console.log(WORLD_POPULATION);
+                    console.log(r0Country);
+                    console.log(typeof r0Country != 'undefined' && r0Country.length != 0);
+                }
+                if(typeof r0Country != 'undefined' && r0Country.length != 0) {
+                    if(country == "global") {
+                        console.log("r0 legal");
+                    }
                     var inputDataCountry = inputData[country].slice(inputData[country].length - r0Country.length, inputData[country].length);
 
 
@@ -281,15 +301,13 @@
                     tempWrap["forwardPredictions"] = forwardPredictions;
                     tempWrap["pastPredictions"] = resultCountryWise;
                     result[country] = tempWrap;
-                    if(country == "global")
-                        console.log(tempWrap);
                 }
             });
-            //console.log(result);
+            //////console.log(result);
             return result;
         }
         $( document ).ready(function() {
-            console.log("ready");
+            ////console.log("ready");
             myFunction();
             var width = 300;
             var height = 300;
