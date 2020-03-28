@@ -16,18 +16,24 @@
         var allPredictions;
         // let WORLD_POPULATION = 7800000000;
         var countryWisePopGlobal = {}
+
+        var plotFirst = ["global", "india","us","italy","china","united kingdom"];
+        // var topDeathCountries=[];
+        // var topRecoverCountries=[];
+        // var restCountries=[];
+
         //-1, -100 to generate from yesterday till last 100 days, days is prediction in future
         function getPopulation() {
-            //console.log("getPopulation called");
             var countryWisePop = {};
                 return d3.csv("https://raw.githubusercontent.com/proggrammer/proggrammer.github.io/master/country_pop.csv", function(data){
                     $.each(data, function (i,k) {
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
                     });
                     countryWisePopGlobal = countryWisePop;
-                    //console.log("...");
-                    //console.log(countryWisePopGlobal);
                 });
+        }
+        function forViewTopCountries() {
+
         }
 
         function addDaysToDate(date, days)  {
@@ -81,7 +87,57 @@
             });
             return r;
         }
-
+        function drawAllProvincesPlots() {
+            var width = 300;
+            var height = 300;
+            //Create SVG element
+            var svg = d3.select("#svgcontainer")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            //Append circle
+            // svg.append("circle")
+            //     .attr("cx", 200)
+            //     .attr("cy", 50)
+            //     .attr("r", 4)
+            //     .attr("fill", "green");
+            $.each(provincesGlobal, function (i,v) {
+                drawOnePlotForAcountry(i, v);
+            });
+        }
+        function drawOnePlotForAcountry(index, countryName) {
+            // var margin = {top: 30, right: 20, bottom: 30, left: 50},
+            //     width = 600 - margin.left - margin.right,
+            //     height = 270 - margin.top - margin.bottom;
+            //
+            // // Parse the date / time
+            // var parseDate = d3.time.format("%d-%b-%y").parse;
+            //
+            // // Set the ranges
+            // var x = d3.time.scale().range([0, width]);
+            // var y = d3.scale.linear().range([height, 0]);
+            //
+            // // Define the axes
+            // var xAxis = d3.svg.axis().scale(x)
+            //     .orient("bottom").ticks(5);
+            //
+            // var yAxis = d3.svg.axis().scale(y)
+            //     .orient("left").ticks(5);
+            //
+            // // Define the line
+            // var valueline = d3.svg.line()
+            //     .x(function(d) { return x(d.date); })
+            //     .y(function(d) { return y(d.close); });
+            //
+            // // Adds the svg canvas
+            // var svg = d3.select("body")
+            //     .append("svg")
+            //     .attr("width", width + margin.left + margin.right)
+            //     .attr("height", height + margin.top + margin.bottom)
+            //     .append("g")
+            //     .attr("transform",
+            //         "translate(" + margin.left + "," + margin.top + ")");
+        }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
                 rawData = data;
@@ -91,7 +147,6 @@
                     item = rawData[value];
                     var country = item["Country/Region"];
                     var keysRawData2 = Object.keys(item);
-                    ////console.log(country);
                     var vObject = [];
                     $.each(keysRawData2, function( index, date ) {
                             if(!["Province/State", "Lat", "Long", "Country/Region"].includes(date)) {
@@ -123,29 +178,18 @@
                     });
                     countryWisePopGlobal = countryWisePop;
                     allPredictions = predictions(inputData, r0Data, true, 1000);
-                    // //console.log("...");
-                    // //console.log(countryWisePopGlobal);
+                    //drawSummary();
+                    drawAllProvincesPlots();
                 });
             });
         }
         function predictions(inputDataTemp, r0DataTemp, generateValue, howManyFront)    {
-            console.log(countryWisePopGlobal);
             var result ={};
             $.each(provincesGlobal, function (index, country) {
                 var r0Country = r0Data[country];
                 var WORLD_POPULATION = countryWisePopGlobal[country.toLowerCase()];
-                if(country == "global") {
-                    console.log(WORLD_POPULATION);
-                    console.log(r0Country);
-                    console.log(typeof r0Country != 'undefined' && r0Country.length != 0);
-                }
                 if(typeof r0Country != 'undefined' && r0Country.length != 0) {
-                    if(country == "global") {
-                        console.log("r0 legal");
-                    }
                     var inputDataCountry = inputData[country].slice(inputData[country].length - r0Country.length, inputData[country].length);
-
-
                     var dataLength = r0Country.length;
                     var numIterations = r0Country.length;
                     var k = 0;
@@ -303,25 +347,10 @@
                     result[country] = tempWrap;
                 }
             });
-            //////console.log(result);
             return result;
         }
         $( document ).ready(function() {
-            ////console.log("ready");
             myFunction();
-            var width = 300;
-            var height = 300;
-            //Create SVG element
-            var svg = d3.select("#svgcontainer")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-            //Append circle
-            svg.append("circle")
-                .attr("cx", 200)
-                .attr("cy", 50)
-                .attr("r", 4)
-                .attr("fill", "green");
         });
     </script>
 </head>
