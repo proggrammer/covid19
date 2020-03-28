@@ -3,10 +3,12 @@
 <head>
     <style>
         #title {
+            position: fixed;
             color: blue;
             font-size: xx-large;
             background-color: bisque;
             text-align: center;
+            width: 100%;
         }
         #contact {
             position: fixed;
@@ -14,6 +16,12 @@
             width: 100%;
             text-align: center;
             background-color: beige;
+        }
+        /*svg{*/
+            /*width: 100%;*/
+        /*}*/
+        #svgcontainer{
+
         }
     </style>
     <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
@@ -31,8 +39,8 @@
         var allPredictions;
         // let WORLD_POPULATION = 7800000000;
         var countryWisePopGlobal = {}
-
-        var plotFirst = ["global", "india","us","italy","china","united kingdom"];
+        var orderedCountryNames =[];
+        var plotFirst = ["global", "India","US","Italy","China","United Kingdom"];
         // var topDeathCountries=[];
         // var topRecoverCountries=[];
         // var restCountries=[];
@@ -103,27 +111,49 @@
             return r;
         }
         function drawAllProvincesPlots() {
-            var width = 300;
-            var height = 300;
-            //Create SVG element
-            var svg = d3.select("#svgcontainer")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-            //Append circle
-            // svg.append("circle")
-            //     .attr("cx", 200)
-            //     .attr("cy", 50)
-            //     .attr("r", 4)
-            //     .attr("fill", "green");
-            $.each(provincesGlobal, function (i,v) {
-                drawOnePlotForAcountry(i, v);
-            });
+            // var width = 300;
+            // var height = 300;
+            // //Create SVG element
+            // var svg = d3.select("#svgcontainer")
+            //     .append("svg")
+            //     .attr("width", width)
+            //     .attr("height", height);
+            // //Append circle
+            // // svg.append("circle")
+            // //     .attr("cx", 200)
+            // //     .attr("cy", 50)
+            // //     .attr("r", 4)
+            // //     .attr("fill", "green");
+            // $.each(provincesGlobal, function (i,v) {
+            //     drawOnePlotForAcountry(i, v);
+            // });
+
+            function notInPriority(e) {
+                return !plotFirst.includes(e);
+            }
+            var withoutPriority = provincesGlobal.filter(notInPriority)
+            orderedCountryNames = plotFirst.concat(withoutPriority);
+            console.log(provincesGlobal);
+            console.log(withoutPriority);
+
+
+            var dataArray = [20, 40, 50, 60, 70, 80, 90];
+            var selection = d3.select("#svgcontainer")
+                .selectAll(".small-div")
+                .data(provincesGlobal)
+                .enter()
+                .append("div")
+                .text(function(d) {
+                    return d;
+                });
+
+            console.log("the size of the enter selection is: " + selection.size())
         }
         function drawOnePlotForAcountry(index, countryName) {
-            // var margin = {top: 30, right: 20, bottom: 30, left: 50},
-            //     width = 600 - margin.left - margin.right,
-            //     height = 270 - margin.top - margin.bottom;
+            console.log("one plot called, index: "+index+" country: "+countryName);
+            var margin = {top: 30, right: 20, bottom: 30, left: 50},
+                width = 600 - margin.left - margin.right,
+                height = 270 - margin.top - margin.bottom;
             //
             // // Parse the date / time
             // var parseDate = d3.time.format("%d-%b-%y").parse;
@@ -145,13 +175,14 @@
             //     .y(function(d) { return y(d.close); });
             //
             // // Adds the svg canvas
-            // var svg = d3.select("body")
-            //     .append("svg")
-            //     .attr("width", width + margin.left + margin.right)
-            //     .attr("height", height + margin.top + margin.bottom)
-            //     .append("g")
-            //     .attr("transform",
-            //         "translate(" + margin.left + "," + margin.top + ")");
+            var svg = d3.select("svgcontainer")
+                .append("div")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
         }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
@@ -371,8 +402,8 @@
 </head>
 
 <body>
-<div id = "title">The Pandemic COVID-19 spread predictions by country</div>
+<div id = "title">The Pandemic COVID-19 spread predictions Country-wise</div>
 <div id = "svgcontainer"></div>
-<div id = "contact">Developed by Kapil Rajak. Report suggestion/error to caps.raaj@gmail.com</div>
+<div id = "contact">Developed by Kapil Rajak, if you have found it useful, share on whatsapp/fb/twitter. Report suggestions/errors to caps.raaj@gmail.com</div>
 </body>
 </html>
