@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type = "text/javascript" src = "https://d3js.org/d3.v4.min.js"></script>
+    <script>
+        var rawData = null;
+        var item = null;
+        var keysRawData = null;
+        var inputData = {};
+        var r0Data = {};
+        var lastDateOfData= "";
+        var debug="";
+        var provincesGlobal=["global"];
+        var sizeDataArrayByDate;
+        var allPredictions;
+        // let WORLD_POPULATION = 7800000000;
+        var countryWisePop = {}
+        //-1, -100 to generate from yesterday till last 100 days, days is prediction in future
+        function getPopulation() {
+                return d3.csv("https://raw.githubusercontent.com/proggrammer/proggrammer.github.io/master/country_pop.csv", function(data){
+                    $.each(data, function (i,k) {
+                        countryWisePop[k["name"]] = Math.round(k["population"]*1000);
+                    })
+                });
+        }
+
+        function addDaysToDate(date, days)  {
+            var splitS = date.split("/");
+            var result = new Date(splitS[0], splitS[1], splitS[2]);
+            result.setDate(result.getDate() + days);
+            return result.getFullYear().toString().substring(2,4) + "/" + twoCharForce(result.getMonth().toString())+"/"+result.getDate().toString();
+        }
+        function r0Method(inputData)  {
+            var r0DataTemp={};
+            $.each(Array.from(provincesGlobal), function( index, k ) {
+                var result = [];
+                var eachCountryData = inputData[k];
+                debug = inputData[k];
+                //producing each r0
+                var nonZeroHitFlag = false;
+                $.each(eachCountryData, function (index1, v) {
+                    var todayIndex = index1;
+                    var yesterdayIndex = index1 -1;
+                    var incumbationIndex = index1 - 5;
+                    if(todayIndex < eachCountryData.length && incumbationIndex >= 0 &&
+                        ((eachCountryData[incumbationIndex] != 0 && eachCountryData[todayIndex] != eachCountryData[yesterdayIndex]) || nonZeroHitFlag == true))   {
+                        nonZeroHitFlag = true;
+                        var r0Value;
+                        if(eachCountryData[incumbationIndex] !=0.0)
+                            r0Value= (eachCountryData[todayIndex] - eachCountryData[yesterdayIndex])*1.0/eachCountryData[incumbationIndex];
+                        else r0Value = 0.0;
+                        result.push(r0Value);
+                    }
+                });
+                r0DataTemp[k] = result;
+            });
+            return r0DataTemp;
+        }
+        function minMaxLastPrediction(inputData, lastDateOfData, datePoint)   {
+
+        }
+        function twoCharForce(s){
+            if(s.length == 1)
+                return "0"+s;
+            else return s;
+        }
+        function inputToSystemDate(inputDate)   {
+            var inputSplit = inputDate.split("/");
+            return inputSplit[2]+"/"+twoCharForce(inputSplit[0])+"/"+ twoCharForce(inputSplit[1]);
+        }
+        function addArray(inputElement, other) {
+            var r= [];
+            $.each(inputElement, function( index, value ) {
+                r.push(inputElement[index] + other[index]);
+            });
+            return r;
+        }
+
+        function myFunction() {
+            return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
+                rawData = data;
+                keysRawData = Array.from(rawData.keys());
+                //eachProvince
+                $.each(Array.from(keysRawData), function( index, value ) {
+                    item = rawData[value];
+                    var country = item["Country/Region"];
+                    var keysRawData2 = Object.keys(item);
+                    //console.log(country);
+                    var vObject = [];
+                    $.each(keysRawData2, function( index, date ) {
+                            if(!["Province/State", "Lat", "Long", "Country/Region"].includes(date)) {
+                                vObject.push(parseInt(item[date]));
+                            }
+                    });
+                    if(!inputData.hasOwnProperty("global")) {
+                        inputData["global"] = vObject;
+                    }
+                    else {
+                        inputData["global"] = addArray(inputData["global"], vObject)
+                    }
+                    if(!inputData.hasOwnProperty(country))   {
+                        inputData[country] = vObject;
+                    }
+                    else {
+                        inputData[country] = addArray(inputData[country], vObject)
+                    }
+                });
+                lastDateOfData = rawData.columns[rawData.columns.length-1];
+                r0Data = r0Method(inputData);
+                provincesGlobal = Object.keys(inputData);
+                allPredictions = predictions(inputData, r0Data, true, 1000);
+            });
+        }
+        function predictions(inputDataTemp, r0DataTemp, generateValue, howManyFront)    {
+            var result ={};
+            $.each(provincesGlobal, function (index, country) {
+                var r0Country = r0Data[country];
+                var WORLD_POPULATION = countryWisePop[country];
+
+                if(typeof r0Country != 'undefined' && r0Country.length == 0) {
+                    var inputDataCountry = inputData[country].slice(inputData[country].length - r0Country.length, inputData[country].length);
+
+
+                    var dataLength = r0Country.length;
+                    var numIterations = r0Country.length;
+                    var k = 0;
+                    var min = 10000.0;
+                    var minBackDay;
+                    var max = -10000.0;
+                    var maxBackday;
+                    var last;
+                    var lastBackday;
+                    var forwardPredictions = {};
+                    var lastDayCount;
+                    //var previousDayCount;
+                    var fiveDaysBackCount;
+                    var resultCountryWise = {};
+                    for (k = 5; k < numIterations; k++) {
+                        var indexToWrite = -1 * (numIterations - k);
+
+                        if (min > r0Country[k]) {
+                            min = r0Country[k];
+                            minBackDay = indexToWrite;
+                        }
+                        if (max < r0Country[k]) {
+                            max = r0Country[k];
+                            maxBackday = indexToWrite;
+                        }
+                        last = r0Country[k];
+                        lastBackday = indexToWrite;
+
+                        lastDayCount = inputDataCountry[k];
+                        // previousDayCount = inputDataCountry[k-1]
+                        fiveDaysBackCount = inputDataCountry[k - 5];
+
+                        var oneDayPrediction = {}
+
+                        oneDayPrediction["min"] = min;
+                        oneDayPrediction["minBackDay"] = minBackDay;
+                        oneDayPrediction["max"] = max;
+                        oneDayPrediction["maxBackDay"] = minBackDay;
+                        oneDayPrediction["last"] = last;
+                        oneDayPrediction["lastBackDay"] = lastBackday;
+                        oneDayPrediction["fiveDaysBackCount"] = fiveDaysBackCount;
+                        var valuesPast = {};
+                        if (generateValue) {
+                            //pastValues
+                            var minArrayPast = [];
+                            var maxArrayPast = [];
+                            var lastArrayPast = [];
+
+                            var tempLastDayCountMinPast = lastDayCount;
+                            var tempLastDayCountMaxPast = lastDayCount;
+                            var tempLastDayCountLastPast = lastDayCount;
+
+                            var tempFiveDyBeforeCountMinPast = fiveDaysBackCount;
+                            var tempFiveDyBeforeCountMaxPast = fiveDaysBackCount;
+                            var tempFiveDyBeforeCountLastPast = fiveDaysBackCount;
+                            var n;
+                            for (n = 0; n < howManyFront - indexToWrite; n++) {
+                                var c = Math.round(tempLastDayCountMinPast + min * tempFiveDyBeforeCountMinPast);
+                                minArrayPast.push(c);
+                                if (c > WORLD_POPULATION) break;
+                                var predictArraySizeTillNowPast = n + 1;
+                                tempLastDayCountMinPast = minArrayPast[predictArraySizeTillNowPast - 1];
+                                if (predictArraySizeTillNowPast >= 5) {
+                                    tempFiveDyBeforeCountMinPast = minArrayPast[predictArraySizeTillNowPast - 5];
+                                } else {
+                                    tempFiveDyBeforeCountMinPast = inputDataCountry[dataLength - (5 - predictArraySizeTillNowPast)];
+                                }
+                            }
+                            for (n = 0; n < howManyFront - indexToWrite; n++) {
+                                var c = Math.round(tempLastDayCountMaxPast + max * tempFiveDyBeforeCountMaxPast);
+                                maxArrayPast.push(c);
+                                if (c > WORLD_POPULATION) break;
+                                var predictArraySizeTillNowPast = n + 1;
+                                tempLastDayCountMaxPast = maxArrayPast[predictArraySizeTillNowPast - 1];
+                                if (predictArraySizeTillNowPast >= 5) {
+                                    tempFiveDyBeforeCountMaxPast = maxArrayPast[predictArraySizeTillNowPast - 5];
+                                } else {
+                                    tempFiveDyBeforeCountMaxPast = inputDataCountry[dataLength - (5 - predictArraySizeTillNowPast)];
+                                }
+                            }
+                            for (n = 0; n < howManyFront - indexToWrite; n++) {
+                                var c = Math.round(tempLastDayCountLastPast + last * tempFiveDyBeforeCountLastPast);
+                                lastArrayPast.push(c);
+                                if (c > WORLD_POPULATION) break;
+                                var predictArraySizeTillNowPast = n + 1;
+                                tempLastDayCountLastPast = lastArrayPast[predictArraySizeTillNowPast - 1];
+                                if (predictArraySizeTillNowPast >= 5) {
+                                    tempFiveDyBeforeCountLastPast = lastArrayPast[predictArraySizeTillNowPast - 5];
+                                } else {
+                                    tempFiveDyBeforeCountLastPast = inputDataCountry[dataLength - (5 - predictArraySizeTillNowPast)];
+                                }
+                            }
+                            valuesPast["minArray"] = minArrayPast;
+                            valuesPast["maxArray"] = maxArrayPast;
+                            valuesPast["lastArray"] = lastArrayPast;
+                            oneDayPrediction["valuesPast"] = valuesPast;
+                        }
+                        resultCountryWise[indexToWrite.toString()] = oneDayPrediction;
+                    }
+                    var minArray = [];
+                    var maxArray = [];
+                    var lastArray = [];
+
+                    var tempLastDayCountMin = lastDayCount;
+                    var tempLastDayCountMax = lastDayCount;
+                    var tempLastDayCountLast = lastDayCount;
+
+                    var tempFiveDyBeforeCountMin = fiveDaysBackCount;
+                    var tempFiveDyBeforeCountMax = fiveDaysBackCount;
+                    var tempFiveDyBeforeCountLast = fiveDaysBackCount;
+                    var kk;
+                    for (kk = 0; kk < howManyFront; kk++) {
+                        var c = Math.round(tempLastDayCountMin + min * tempFiveDyBeforeCountMin)
+                        minArray.push(c);
+                        if (c > WORLD_POPULATION) break;
+                        var predictArraySizeTillNow = kk + 1;
+                        tempLastDayCountMin = minArray[predictArraySizeTillNow - 1];
+                        if (predictArraySizeTillNow >= 5) {
+                            tempFiveDyBeforeCountMin = minArray[predictArraySizeTillNow - 5];
+                        } else {
+                            tempFiveDyBeforeCountMin = inputDataCountry[dataLength - (5 - predictArraySizeTillNow)];
+                        }
+                    }
+                    for (kk = 0; kk < howManyFront; kk++) {
+                        var c = Math.round(tempLastDayCountMax + max * tempFiveDyBeforeCountMax)
+                        maxArray.push(c);
+                        if (c > WORLD_POPULATION) break;
+                        var predictArraySizeTillNow = kk + 1;
+                        tempLastDayCountMax = maxArray[predictArraySizeTillNow - 1];
+                        if (predictArraySizeTillNow >= 5) {
+                            tempFiveDyBeforeCountMax = maxArray[predictArraySizeTillNow - 5];
+                        } else {
+                            tempFiveDyBeforeCountMax = inputDataCountry[dataLength - (5 - predictArraySizeTillNow)];
+                        }
+                    }
+
+                    for (kk = 0; kk < howManyFront; kk++) {
+                        var c = Math.round(tempLastDayCountLast + last * tempFiveDyBeforeCountLast)
+                        lastArray.push(c);
+                        if (c > WORLD_POPULATION) break;
+                        var predictArraySizeTillNow = kk + 1;
+                        tempLastDayCountLast = lastArray[predictArraySizeTillNow - 1];
+                        if (predictArraySizeTillNow >= 5) {
+                            tempFiveDyBeforeCountLast = lastArray[predictArraySizeTillNow - 5];
+                        } else {
+                            tempFiveDyBeforeCountLast = inputDataCountry[dataLength - (5 - predictArraySizeTillNow)];
+                        }
+                    }
+                    forwardPredictions["minArray"] = minArray;
+                    forwardPredictions["maxArray"] = maxArray;
+                    forwardPredictions["lastArray"] = lastArray;
+                    var tempWrap = {}
+                    tempWrap["forwardPredictions"] = forwardPredictions;
+                    tempWrap["pastPredictions"] = resultCountryWise;
+                    result[country] = tempWrap;
+                }
+            });
+            return result;
+        }
+        $( document ).ready(function() {
+            var width = 300;
+            var height = 300;
+            //Create SVG element
+            var svg = d3.select("#svgcontainer")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            //Append circle
+            svg.append("circle")
+                .attr("cx", 200)
+                .attr("cy", 50)
+                .attr("r", 4)
+                .attr("fill", "green");
+            getPopulation();
+            myFunction();
+        });
+    </script>
+</head>
+
+<body>
+<div id = "svgcontainer"></div>
+@Kapil Rajak : caps.raaj@gmail.com
+</body>
+</html>
