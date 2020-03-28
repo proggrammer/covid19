@@ -21,7 +21,7 @@
                 return d3.csv("https://raw.githubusercontent.com/proggrammer/proggrammer.github.io/master/country_pop.csv", function(data){
                     $.each(data, function (i,k) {
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
-                    })
+                    });
                 });
         }
 
@@ -107,18 +107,22 @@
                     }
                 });
                 lastDateOfData = rawData.columns[rawData.columns.length-1];
-                r0Data = r0Method(inputData);
                 provincesGlobal = Object.keys(inputData);
+                r0Data = r0Method(inputData);
+                getPopulation();
                 allPredictions = predictions(inputData, r0Data, true, 1000);
             });
         }
         function predictions(inputDataTemp, r0DataTemp, generateValue, howManyFront)    {
+            console.log(countryWisePop);
             var result ={};
             $.each(provincesGlobal, function (index, country) {
                 var r0Country = r0Data[country];
-                var WORLD_POPULATION = countryWisePop[country];
-
+                var WORLD_POPULATION = countryWisePop[country.toLowerCase()];
+                if(country == "global")
+                console.log(WORLD_POPULATION);
                 if(typeof r0Country != 'undefined' && r0Country.length == 0) {
+                    //console.log(country);
                     var inputDataCountry = inputData[country].slice(inputData[country].length - r0Country.length, inputData[country].length);
 
 
@@ -277,11 +281,16 @@
                     tempWrap["forwardPredictions"] = forwardPredictions;
                     tempWrap["pastPredictions"] = resultCountryWise;
                     result[country] = tempWrap;
+                    if(country == "global")
+                        console.log(tempWrap);
                 }
             });
+            //console.log(result);
             return result;
         }
         $( document ).ready(function() {
+            console.log("ready");
+            myFunction();
             var width = 300;
             var height = 300;
             //Create SVG element
@@ -295,8 +304,6 @@
                 .attr("cy", 50)
                 .attr("r", 4)
                 .attr("fill", "green");
-            getPopulation();
-            myFunction();
         });
     </script>
 </head>
