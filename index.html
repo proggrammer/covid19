@@ -17,11 +17,19 @@
             text-align: center;
             background-color: beige;
         }
-        /*svg{*/
-            /*width: 100%;*/
-        /*}*/
-        #svgcontainer{
-
+        #svgcontainer {
+            position: absolute;
+            width: 100%;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .plot_head {
+            border-style: ridge;
+            margin: 4px;
+            background-color: floralwhite;
+        }
+        #global{
+            margin-top: auto;
         }
     </style>
     <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
@@ -124,9 +132,6 @@
             // //     .attr("cy", 50)
             // //     .attr("r", 4)
             // //     .attr("fill", "green");
-            // $.each(provincesGlobal, function (i,v) {
-            //     drawOnePlotForAcountry(i, v);
-            // });
 
             function notInPriority(e) {
                 return !plotFirst.includes(e);
@@ -137,23 +142,34 @@
             console.log(withoutPriority);
 
 
-            var dataArray = [20, 40, 50, 60, 70, 80, 90];
+            // var dataArray = [20, 40, 50, 60, 70, 80, 90];
             var selection = d3.select("#svgcontainer")
-                .selectAll(".small-div")
-                .data(provincesGlobal)
+                .selectAll(".plot")
+                .data(orderedCountryNames)
                 .enter()
                 .append("div")
-                .text(function(d) {
-                    return d;
-                });
+                .attr("id", function (d, i) {
+                    return orderedCountryNames[i].toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_").replace(/'/g,"_").replace(/\*/g,"_");
+                })
+                .attr("class", "plot_head");
+                // .text(function(d) {
+                //     return d;
+                // });
+            $.each(orderedCountryNames, function (i,v) {
+                drawOnePlotForAcountry(i, v);
+            });
 
-            console.log("the size of the enter selection is: " + selection.size())
         }
         function drawOnePlotForAcountry(index, countryName) {
             console.log("one plot called, index: "+index+" country: "+countryName);
             var margin = {top: 30, right: 20, bottom: 30, left: 50},
                 width = 600 - margin.left - margin.right,
                 height = 270 - margin.top - margin.bottom;
+            var selectionPlot = d3.select("#"+countryName.toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_").replace(/'/g,"_").replace(/\*/g,"_"))
+                //.append("div")
+                .append("svg")
+                .attr("class", "plot")
+                .append("g")
             //
             // // Parse the date / time
             // var parseDate = d3.time.format("%d-%b-%y").parse;
@@ -175,14 +191,14 @@
             //     .y(function(d) { return y(d.close); });
             //
             // // Adds the svg canvas
-            var svg = d3.select("svgcontainer")
-                .append("div")
-                .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform",
-                    "translate(" + margin.left + "," + margin.top + ")");
+            // var svg = d3.select("svgcontainer")
+            //     .append("div")
+            //     .append("svg")
+            //     .attr("width", width + margin.left + margin.right)
+            //     .attr("height", height + margin.top + margin.bottom)
+            //     .append("g")
+            //     .attr("transform",
+            //         "translate(" + margin.left + "," + margin.top + ")");
         }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
