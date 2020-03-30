@@ -73,9 +73,9 @@
 
         function addDaysToDate(date, days)  {
             var splitS = date.split("/");
-            var result = new Date(splitS[0], splitS[1], splitS[2]);
+            var result = new Date("20"+splitS[2], splitS[0]-1, splitS[1]);
             result.setDate(result.getDate() + days);
-            return result.getFullYear().toString().substring(2,4) + "/" + twoCharForce(result.getMonth().toString())+"/"+result.getDate().toString();
+            return result;//.getFullYear().toString().substring(2,4) + "/" + twoCharForce(result.getMonth().toString())+"/"+result.getDate().toString();
         }
         function r0Method(inputData)  {
             var r0DataTemp={};
@@ -189,14 +189,16 @@
         }
         function drawOnePlotForAcountry(index, countryName) {
             var wordPopulation = "Population";
-            var graphWidth = 600;
-            var graphHeight = 600;
+            var graphWidth = 1400;
+            var graphHeight = 500;
 
             var marginLeft = 100;
             var marginBottom = 100;
             var marginRight = 20;
             var marginTop = 20;
             var countryForPrint = countryName;
+            var originalData = inputData[countryName];
+
             if("global" == countryForPrint) countryForPrint = "Global";
             if("ms zaandam" == countryForPrint.toLowerCase())  {
                 countryForPrint = "Netherlands Cruise Ship MS Zaandam";
@@ -225,25 +227,48 @@
 
             var scaleY = d3.scaleLinear()
                 .domain([0, population])
-                .range([graphHeight-marginTop-marginTop, 0]);
+                .range([graphHeight-marginBottom, marginTop]);
 
             var y_axis = d3.axisLeft()
                 .scale(scaleY);
 
-
-            // var minDate =
-            // var lastDate =
-            // var maxDate =
-            // var scaleX = d3.time.scale()
-            //     .domain([0, population])
-            //     .range([graphHeight-marginTop-marginTop, 0]);
-            //
-            // var x_axis = d3.axisLeft()
-            //     .scale(scaleY);
-
             svg.append("g")
                 .attr("transform", "translate("+marginLeft+","+marginTop+")")
                 .call(y_axis);
+
+            var minDate = addDaysToDate(lastDateOfData, -1*originalData.length);
+            var maxDate = addDaysToDate(lastDateOfData, 30);
+            // var scaleX = d3.time
+            //     .domain([minDate, maxDate])
+            //     .range([marginLeft, graphWidth-marginLeft-marginRight]);
+            //
+            // var x_axis = d3.axisBottom()
+            //     .scale(scaleX);
+            // // svg.append("g")
+            // //     .attr("transform", "translate("+marginLeft+","+graphHeight-marginBottom+")")
+            // //     .call(x_axis);
+
+            var xScale = d3.scaleTime()
+                .domain([minDate, maxDate])    // values between for month of january
+                .range([marginLeft, graphWidth-marginLeft-marginRight]);   // map these the the chart width = total width minus padding at both sides
+
+            // define the y axis
+            var xAxis = d3.axisBottom()
+                .ticks(d3.timeDay.every(1))
+                .tickFormat(d3.timeFormat("%d-%m-%y"))
+                .scale(xScale);
+
+            console.log(marginLeft);
+            console.log(graphHeight);
+            console.log(marginBottom);
+            svg.append("g")
+                .attr("transform", "translate("+0+","+(graphHeight-marginBottom+marginTop)+")")
+                .call(xAxis)
+                .selectAll("text")
+                .style("font", "8px times")
+                .attr("dx", "-2.6em")
+                .attr("dy", "-.3em")
+                .attr("transform", "rotate(-65)");
 
             svg.append("text")
                 .attr("x", marginLeft+20)
