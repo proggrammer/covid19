@@ -209,7 +209,7 @@
                 .attr("height", graphHeight)
 
             var scaleY = d3.scaleLinear()
-                .domain([0, 10])
+                .domain([0, population])
                 .range([graphHeight-marginTop-marginTop, 0]);
 
             var y_axis = d3.axisLeft()
@@ -219,6 +219,11 @@
                 .attr("transform", "translate("+marginLeft+","+marginTop+")")
                 .call(y_axis);
 
+            svg.append("text")
+                .attr("x", 150)
+                .attr("y",50)
+                .attr("stroke","steelblue")
+                .text(countryName+" (Population: "+population+")")
 
         }
         function myFunction() {
