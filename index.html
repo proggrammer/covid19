@@ -241,7 +241,7 @@
                 .attr("transform", "translate("+marginLeft+","+marginTop+")")
                 .call(y_axis);
 
-            var minDate = addDaysToDate(lastDateOfData, -1*originalData.length);
+            var minDate = addDaysToDate(lastDateOfData, -1*30);
             var maxDate = addDaysToDate(lastDateOfData, 30);
             // var scaleX = d3.time
             //     .domain([minDate, maxDate])
@@ -263,9 +263,9 @@
                 .tickFormat(d3.timeFormat("%d-%m-%y"))
                 .scale(xScale);
 
-            console.log(marginLeft);
-            console.log(graphHeight);
-            console.log(marginBottom);
+            // console.log(marginLeft);
+            // console.log(graphHeight);
+            // console.log(marginBottom);
             svg.append("g")
                 .attr("transform", "translate("+0+","+(graphHeight-marginBottom+marginTop)+")")
                 .call(xAxis)
@@ -280,7 +280,6 @@
                 .attr("y",marginTop+4)
                 .attr("stroke","steelblue")
                 .text(countryForPrint+" ("+wordPopulation+": "+population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
-
         }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
@@ -321,7 +320,7 @@
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
                     });
                     countryWisePopGlobal = countryWisePop;
-                    allPredictions = predictions(inputData, r0Data, true, 1000);
+                    allPredictions = predictions(inputData, r0Data, true, 30);
                     //drawSummary();
                     drawAllProvincesPlots();
                 });
