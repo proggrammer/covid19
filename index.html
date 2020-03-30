@@ -188,7 +188,7 @@
 
         }
         function drawOnePlotForAcountry(index, countryName) {
-            if("global" == countryName) countryName = "Global"
+            var wordPopulation = "Population";
             var graphWidth = 600;
             var graphHeight = 600;
 
@@ -196,16 +196,28 @@
             var marginBottom = 100;
             var marginRight = 20;
             var marginTop = 20;
+            var countryForPrint = countryName;
+            if("global" == countryForPrint) countryForPrint = "Global";
+            if("ms zaandam" == countryForPrint.toLowerCase())  {
+                countryForPrint = "Netherlands Cruise Ship MS Zaandam";
+                wordPopulation = "Capacity";
+            }
+            if("diamond princess" == countryForPrint.toLowerCase()) {
+                countryForPrint = "British Cruise Ship Diamond Princess";
+                wordPopulation = "Capacity";
+            }
 
             var countryNameFormatted = countryName.toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_")
                 .replace(/'/g,"_").replace(/\*/g,"_");
 
             var population = countryWisePopGlobal[countryName.toLowerCase()];
-            // if(typeof population == 'undefined')
-            //     console.log(countryName);
+            if(typeof population == 'undefined') {
+                console.log("add pop - country:"+countryName);
+                return;
+            }
             // console.log(countryName);
-            console.log(countryNameFormatted);
-            console.log(population);
+            // console.log(countryNameFormatted);
+            // console.log(population);
             var svg = d3.select("#"+countryNameFormatted)
                 .append("svg")
                 .attr("width", graphWidth)
@@ -237,7 +249,7 @@
                 .attr("x", marginLeft+20)
                 .attr("y",marginTop+4)
                 .attr("stroke","steelblue")
-                .text(countryName+" (Population: "+population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
+                .text(countryForPrint+" ("+wordPopulation+": "+population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
 
         }
         function myFunction() {
