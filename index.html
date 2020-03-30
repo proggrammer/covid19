@@ -188,6 +188,7 @@
 
         }
         function drawOnePlotForAcountry(index, countryName) {
+            if("global" == countryName) countryName = "Global"
             var graphWidth = 600;
             var graphHeight = 600;
 
@@ -220,8 +221,8 @@
                 .call(y_axis);
 
             svg.append("text")
-                .attr("x", 150)
-                .attr("y",50)
+                .attr("x", marginLeft+20)
+                .attr("y",marginTop+4)
                 .attr("stroke","steelblue")
                 .text(countryName+" (Population: "+population.toString().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
 
