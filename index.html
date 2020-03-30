@@ -242,7 +242,7 @@
                 .call(y_axis);
 
             var minDate = addDaysToDate(lastDateOfData, -1*30);
-            var maxDate = addDaysToDate(lastDateOfData, 30);
+            var maxDate = addDaysToDate(lastDateOfData, 60);
             // var scaleX = d3.time
             //     .domain([minDate, maxDate])
             //     .range([marginLeft, graphWidth-marginLeft-marginRight]);
@@ -320,7 +320,7 @@
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
                     });
                     countryWisePopGlobal = countryWisePop;
-                    allPredictions = predictions(inputData, r0Data, true, 30);
+                    allPredictions = predictions(inputData, r0Data, false, 60);
                     //drawSummary();
                     drawAllProvincesPlots();
                 });
