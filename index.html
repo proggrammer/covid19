@@ -201,9 +201,11 @@
                 .replace(/'/g,"_").replace(/\*/g,"_");
 
             var population = countryWisePopGlobal[countryName.toLowerCase()];
+            // if(typeof population == 'undefined')
+            //     console.log(countryName);
             // console.log(countryName);
-            // console.log(countryNameFormatted);
-            // console.log(population);
+            console.log(countryNameFormatted);
+            console.log(population);
             var svg = d3.select("#"+countryNameFormatted)
                 .append("svg")
                 .attr("width", graphWidth)
@@ -216,6 +218,17 @@
             var y_axis = d3.axisLeft()
                 .scale(scaleY);
 
+
+            // var minDate =
+            // var lastDate =
+            // var maxDate =
+            // var scaleX = d3.time.scale()
+            //     .domain([0, population])
+            //     .range([graphHeight-marginTop-marginTop, 0]);
+            //
+            // var x_axis = d3.axisLeft()
+            //     .scale(scaleY);
+
             svg.append("g")
                 .attr("transform", "translate("+marginLeft+","+marginTop+")")
                 .call(y_axis);
@@ -224,7 +237,7 @@
                 .attr("x", marginLeft+20)
                 .attr("y",marginTop+4)
                 .attr("stroke","steelblue")
-                .text(countryName+" (Population: "+population.toString().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
+                .text(countryName+" (Population: "+population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
 
         }
         function myFunction() {
