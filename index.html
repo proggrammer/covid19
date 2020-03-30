@@ -223,7 +223,7 @@
                 .attr("x", 150)
                 .attr("y",50)
                 .attr("stroke","steelblue")
-                .text(countryName+" (Population: "+population+")")
+                .text(countryName+" (Population: "+population.toString().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
 
         }
         function myFunction() {
