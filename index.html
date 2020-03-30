@@ -9,8 +9,10 @@
             background-color: bisque;
             text-align: center;
             width: 100%;
+            z-index: 100;
         }
         #contact {
+            z-index:100;
             position: fixed;
             bottom: 0;
             width: 100%;
@@ -19,7 +21,9 @@
         }
         #svgcontainer {
             position: absolute;
-            width: 100%;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            width: 99%;
             margin-top: 40px;
             margin-bottom: 20px;
         }
@@ -138,95 +142,84 @@
             }
             var withoutPriority = provincesGlobal.filter(notInPriority)
             orderedCountryNames = plotFirst.concat(withoutPriority);
-            console.log(provincesGlobal);
-            console.log(withoutPriority);
+            // console.log(provincesGlobal);
+            // console.log(withoutPriority);
 
 
 
-            var widthPlot = 400;
-            var heightPlot = 300;
-
-            var graphs = d3.select("body")
-                .select("#svgcontainer")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", heightPlot * orderedCountryNames.length)
-
-            var eachGraph = graphs.selectAll("g")
-                .data(inputData)
-                .enter()
-                .append("g")
-                .attr("transform", function(d, i){
-                    return "translate(0," + i * widthPlot + ")";
-                })
-
-            eachGraph.append("rect")
-                .attr("width", function(d) {
-                    return widthPlot;
-                })
-                .attr("height", heightPlot);
-
-            // var dataArray = [20, 40, 50, 60, 70, 80, 90];
-            // var selection = d3.select("#svgcontainer")
-            //     .selectAll(".plot")
-            //     .data(orderedCountryNames)
+            // var widthPlot = 400;
+            // var heightPlot = 300;
+            //
+            // var graphs = d3.select("body")
+            //     .select("#svgcontainer")
+            //     .append("svg")
+            //     .attr("width", width)
+            //     .attr("height", heightPlot * orderedCountryNames.length)
+            //
+            // var eachGraph = graphs.selectAll("g")
+            //     .data(inputData)
             //     .enter()
-            //     .append("div")
-            //     .attr("id", function (d, i) {
-            //         return orderedCountryNames[i].toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_").replace(/'/g,"_").replace(/\*/g,"_");
+            //     .append("g")
+            //     .attr("transform", function(d, i){
+            //         return "translate(0," + i * widthPlot + ")";
             //     })
-            //     .attr("class", "plot_head");
-            //     // .text(function(d) {
-            //     //     return d;
-            //     // });
-            // $.each(orderedCountryNames, function (i,v) {
-            //     drawOnePlotForAcountry(i, v);
-            // });
+            //
+            // eachGraph.append("rect")
+            //     .attr("width", function(d) {
+            //         return widthPlot;
+            //     })
+            //     .attr("height", heightPlot);
+
+            var selection = d3.select("#svgcontainer")
+                .selectAll(".plot_head")
+                .data(orderedCountryNames)
+                .enter()
+                .append("div")
+                .attr("id", function (d, i) {
+                    return orderedCountryNames[i].toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_").replace(/'/g,"_").replace(/\*/g,"_");
+                })
+                .attr("class", "plot_head");
+                // .text(function(d) {
+                //     return d;
+                // });
+            $.each(orderedCountryNames, function (i,v) {
+                drawOnePlotForAcountry(i, v);
+            });
 
         }
         function drawOnePlotForAcountry(index, countryName) {
-            // console.log("one plot called, index: "+index+" country: "+countryName);
-            // var countryFormatted = countryName.toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_").replace(/'/g,"_").replace(/\*/g,"_")
-            // var margin = {top: 30, right: 20, bottom: 30, left: 50},
-            //     width = 600 - margin.left - margin.right,
-            //     height = 270 - margin.top - margin.bottom;
-            // var selectionPlot = d3.select("#"+countryFormatted)
-            //     //.append("div")
-            //     .data(inputData[countryFormatted])
-            //     .
-            //     .append("svg")
-            //     .attr("class", "plot")
-            //     .append("g")
+            var graphWidth = 600;
+            var graphHeight = 600;
 
-            //
-            // // Parse the date / time
-            // var parseDate = d3.time.format("%d-%b-%y").parse;
-            //
-            // // Set the ranges
-            // var x = d3.time.scale().range([0, width]);
-            // var y = d3.scale.linear().range([height, 0]);
-            //
-            // // Define the axes
-            // var xAxis = d3.svg.axis().scale(x)
-            //     .orient("bottom").ticks(5);
-            //
-            // var yAxis = d3.svg.axis().scale(y)
-            //     .orient("left").ticks(5);
-            //
-            // // Define the line
-            // var valueline = d3.svg.line()
-            //     .x(function(d) { return x(d.date); })
-            //     .y(function(d) { return y(d.close); });
-            //
-            // // Adds the svg canvas
-            // var svg = d3.select("svgcontainer")
-            //     .append("div")
-            //     .append("svg")
-            //     .attr("width", width + margin.left + margin.right)
-            //     .attr("height", height + margin.top + margin.bottom)
-            //     .append("g")
-            //     .attr("transform",
-            //         "translate(" + margin.left + "," + margin.top + ")");
+            var marginLeft = 100;
+            var marginBottom = 100;
+            var marginRight = 20;
+            var marginTop = 20;
+
+            var countryNameFormatted = countryName.toLowerCase().replace(/ /g, "_").replace(/\(/g,"_").replace(/\)/g,"_")
+                .replace(/'/g,"_").replace(/\*/g,"_");
+
+            var population = countryWisePopGlobal[countryName.toLowerCase()];
+            // console.log(countryName);
+            // console.log(countryNameFormatted);
+            // console.log(population);
+            var svg = d3.select("#"+countryNameFormatted)
+                .append("svg")
+                .attr("width", graphWidth)
+                .attr("height", graphHeight)
+
+            var scaleY = d3.scaleLinear()
+                .domain([0, 10])
+                .range([graphHeight-marginTop-marginTop, 0]);
+
+            var y_axis = d3.axisLeft()
+                .scale(scaleY);
+
+            svg.append("g")
+                .attr("transform", "translate("+marginLeft+","+marginTop+")")
+                .call(y_axis);
+
+
         }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
