@@ -58,6 +58,9 @@
         var countryWisePopGlobal = {}
         var orderedCountryNames =[];
         var plotFirst = ["global", "India","US","Italy","China","United Kingdom"];
+        var pastDataNum = 15;
+        var futureDataNum = 30;
+        var circleRadius = 4;
         // var topDeathCountries=[];
         // var topRecoverCountries=[];
         // var restCountries=[];
@@ -190,19 +193,29 @@
             $.each(orderedCountryNames, function (i,v) {
                 drawOnePlotForAcountry(i, v);
             });
-
+            // drawOnePlotForAcountry(0, "India");
         }
         function drawOnePlotForAcountry(index, countryName) {
             var wordPopulation = "Population";
             var graphWidth = 1400;
-            var graphHeight = 500;
+            var graphHeight = 600;
 
             var marginLeft = 100;
             var marginBottom = 100;
             var marginRight = 20;
             var marginTop = 20;
             var countryForPrint = countryName;
-            var originalData = inputData[countryName];
+            var originalData = inputData[countryName].slice(inputData[countryName].length-pastDataNum, inputData[countryName].length);
+            
+            var lastDayBasedPrediction;
+            if(typeof allPredictions[countryName] == "undefined" || typeof allPredictions[countryName]["forwardPredictions"] == "undefined")
+                lastDayBasedPrediction = [];
+            else
+                lastDayBasedPrediction = allPredictions[countryName]["forwardPredictions"]["lastArray"];
+
+            console.log("originalData");
+            console.log(originalData);
+            console.log(lastDayBasedPrediction);
 
             if("global" == countryForPrint) countryForPrint = "Global";
             if("ms zaandam" == countryForPrint.toLowerCase())  {
@@ -230,8 +243,16 @@
                 .attr("width", graphWidth)
                 .attr("height", graphHeight)
 
+            var maxYOriginal = d3.max(originalData);
+            var maxYPrediction = d3.max(lastDayBasedPrediction);
+            var maxY;
+            if(maxYOriginal > maxYPrediction)
+                maxY = maxYOriginal;
+            else maxY = maxYPrediction;
+
+            console.log(maxY);
             var scaleY = d3.scaleLinear()
-                .domain([0, population])
+                .domain([0, maxY])
                 .range([graphHeight-marginBottom, marginTop]);
 
             var y_axis = d3.axisLeft()
@@ -241,8 +262,8 @@
                 .attr("transform", "translate("+marginLeft+","+marginTop+")")
                 .call(y_axis);
 
-            var minDate = addDaysToDate(lastDateOfData, -1*30);
-            var maxDate = addDaysToDate(lastDateOfData, 60);
+            var minDate = addDaysToDate(lastDateOfData, -1*(pastDataNum -1));
+            var maxDate = addDaysToDate(lastDateOfData, futureDataNum);
             // var scaleX = d3.time
             //     .domain([minDate, maxDate])
             //     .range([marginLeft, graphWidth-marginLeft-marginRight]);
@@ -280,6 +301,84 @@
                 .attr("y",marginTop+4)
                 .attr("stroke","steelblue")
                 .text(countryForPrint+" ("+wordPopulation+": "+population.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+")")
+
+            svg.append("g").selectAll(".original")
+                .data(originalData)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d,i){
+                    return xScale(addDaysToDate(lastDateOfData,-(pastDataNum-1-i)) );
+                })
+                .attr("cy", function(d){
+                    return scaleY(d)+marginTop;
+                })
+                .attr("r",circleRadius)
+                .attr("id", function (d, i) {
+                    return -i-1;
+                })
+                .on("mouseover", function(d, i){
+                    d3.select(this)
+                        .style("fill", "cyan")
+                        .attr("r",circleRadius*2);
+                    svg.append("text")
+                        .attr("x", xScale(addDaysToDate(lastDateOfData,-(pastDataNum-1-i))) - (6.0*(d.toString().length)/2.0))
+                        .attr("y", scaleY(d)+marginTop-10)
+                        .attr("stroke", "green")
+                        .attr("font-family", "sans-serif")
+                        .attr("font-size", "13px")
+                        .attr("id", "data_label")
+                        .text(d);
+
+                })
+                .on("mouseout", function(d, i){
+                    d3.select(this)
+                        .style("fill", "blue")
+                        .attr("r",circleRadius);
+                    d3.select("#data_label")
+                        .remove();
+                })
+                // .attr("class", "original")
+                .style("fill", "blue");
+
+            console.log(lastDayBasedPrediction);
+            svg.append("g").selectAll(".prediction")
+                .data(lastDayBasedPrediction)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d,i){
+                    return xScale(addDaysToDate(lastDateOfData,i+1));
+                })
+                .attr("cy", function(d){
+                    return scaleY(d)+marginTop;
+                })
+                .attr("r",circleRadius)
+                .attr("id", function (d, i) {
+                    return i;
+                })
+                .on("mouseover", function(d, i){
+                    d3.select(this)
+                        .style("fill", "orange")
+                        .attr("r",circleRadius*2);
+                    svg.append("text")
+                        .attr("x", xScale(addDaysToDate(lastDateOfData,i+1))-d.toString().length*6.0/2)
+                        .attr("y", scaleY(d)+marginTop-10)
+                        .attr("stroke", "green")
+                        .attr("font-family", "sans-serif")
+                        .attr("font-size", "13px")
+                        .attr("id", "data_label")
+                        .text(d);
+
+                })
+                .on("mouseout", function(){
+                    d3.select(this)
+                        .style("fill", "red")
+                        .attr("r",circleRadius);
+                    d3.select("#data_label")
+                        .remove();
+                })
+                // .attr("class", "original")
+                .style("fill", "red");
+
         }
         function myFunction() {
             return d3.csv("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data){
@@ -320,7 +419,7 @@
                         countryWisePop[k["name"]] = Math.round(k["population"]*1000);
                     });
                     countryWisePopGlobal = countryWisePop;
-                    allPredictions = predictions(inputData, r0Data, false, 60);
+                    allPredictions = predictions(inputData, r0Data, false, futureDataNum);
                     //drawSummary();
                     drawAllProvincesPlots();
                 });
